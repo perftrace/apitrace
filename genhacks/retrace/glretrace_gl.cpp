@@ -51327,7 +51327,6 @@ static void retrace_glFramebufferTexture2DEXT(trace::Call &call) {
     if (retrace::debug && !glretrace::insideGlBeginEnd && glretrace::getCurrentContext()) {
         glretrace::checkGlError(call);
     }
-    printf("XXX: framebuffer status = 0x%x\n", glCheckFramebufferStatus(GL_FRAMEBUFFER) );
 }
 
 static void retrace_glFramebufferTexture3DEXT(trace::Call &call) {
@@ -51408,7 +51407,6 @@ static void retrace_glFramebufferRenderbufferEXT(trace::Call &call) {
     if (retrace::debug && !glretrace::insideGlBeginEnd && glretrace::getCurrentContext()) {
         glretrace::checkGlError(call);
     }
-    printf("XXX: framebuffer status = 0x%x\n", glCheckFramebufferStatus(GL_FRAMEBUFFER) );
 }
 
 static void retrace_glGenerateMipmapEXT(trace::Call &call) {
@@ -51617,6 +51615,11 @@ static void retrace_glProgramLocalParameters4fvEXT(trace::Call &call) {
 }
 
 static void retrace_glBufferParameteriAPPLE(trace::Call &call) {
+#if __linux__ || _WIN32
+    if( 1 ) {
+      return;
+    }
+#endif
     retrace::ScopedAllocator _allocator;
     (void)_allocator;
     GLenum target;
@@ -51644,6 +51647,11 @@ static void retrace_glBufferParameteriAPPLE(trace::Call &call) {
 }
 
 static void retrace_glFlushMappedBufferRangeAPPLE(trace::Call &call) {
+#if __linux__ || _WIN32
+    if( 1 ) {
+      return;
+    }
+#endif
     retrace::ScopedAllocator _allocator;
     (void)_allocator;
     GLenum target;

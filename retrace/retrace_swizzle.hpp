@@ -86,10 +86,6 @@ public:
         it = base.end();
       }
       T t = it->second + ( key - it->first );
-      if( key != it->first ) {
-        printf( "XXX: lookupUniformLocation %d found %d next nearest entry, which maps to %d\n", key, it->first, it->second );
-      }
-      printf( "XXX: recorded %d becomes payback %d\n", key, t );
       return t;
     }
 };
