@@ -13142,6 +13142,7 @@ if (glretrace::supportsARBShaderObjects) {
         glretrace::beginProfile(call, false);
     }
     glLinkProgram(program);
+    _location_map[program].clear();
     if (!glretrace::insideList && !glretrace::insideGlBeginEnd && retrace::profiling) {
         glretrace::endProfile(call, false);
     }
@@ -22109,6 +22110,7 @@ static void retrace_glLinkProgramARB(trace::Call &call) {
         glretrace::beginProfile(call, false);
     }
     glLinkProgramARB(programObj);
+    _location_map[programObj].clear();
     if (!glretrace::insideList && !glretrace::insideGlBeginEnd && retrace::profiling) {
         glretrace::endProfile(call, false);
     }
