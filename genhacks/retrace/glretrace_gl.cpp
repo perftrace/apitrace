@@ -51110,6 +51110,12 @@ static void retrace_glRenderbufferStorageEXT(trace::Call &call) {
 }
 
 static void retrace_glBindFramebufferEXT(trace::Call &call) {
+#if __linux__ || _WIN32
+    if( 1 ) {
+      retrace_glBindFramebuffer( call );
+      return;
+    }
+#endif
     assert(call.flags & trace::CALL_FLAG_SWAP_RENDERTARGET);
     retrace::ScopedAllocator _allocator;
     (void)_allocator;
@@ -51173,6 +51179,12 @@ static void retrace_glDeleteFramebuffersEXT(trace::Call &call) {
 }
 
 static void retrace_glGenFramebuffersEXT(trace::Call &call) {
+#if __linux__ || _WIN32
+    if( 1 ) {
+      retrace_glGenFramebuffers( call );
+      return;
+    }
+#endif
     retrace::ScopedAllocator _allocator;
     (void)_allocator;
     GLsizei n;
@@ -51273,6 +51285,12 @@ static void retrace_glFramebufferTexture1DEXT(trace::Call &call) {
 }
 
 static void retrace_glFramebufferTexture2DEXT(trace::Call &call) {
+#if __linux__ || _WIN32
+    if( 1 ) {
+      retrace_glFramebufferTexture2D( call );
+      return;
+    }
+#endif
     retrace::ScopedAllocator _allocator;
     (void)_allocator;
     GLenum target;
@@ -51307,6 +51325,7 @@ static void retrace_glFramebufferTexture2DEXT(trace::Call &call) {
     if (retrace::debug && !glretrace::insideGlBeginEnd && glretrace::getCurrentContext()) {
         glretrace::checkGlError(call);
     }
+    printf("XXX: framebuffer status = 0x%x\n", glCheckFramebufferStatus(GL_FRAMEBUFFER) );
 }
 
 static void retrace_glFramebufferTexture3DEXT(trace::Call &call) {
@@ -51350,6 +51369,12 @@ static void retrace_glFramebufferTexture3DEXT(trace::Call &call) {
 }
 
 static void retrace_glFramebufferRenderbufferEXT(trace::Call &call) {
+#if __linux__ || _WIN32
+    if( 1 ) {
+      retrace_glFramebufferRenderbuffer( call );
+      return;
+    }
+#endif
     retrace::ScopedAllocator _allocator;
     (void)_allocator;
     GLenum target;
@@ -51381,6 +51406,7 @@ static void retrace_glFramebufferRenderbufferEXT(trace::Call &call) {
     if (retrace::debug && !glretrace::insideGlBeginEnd && glretrace::getCurrentContext()) {
         glretrace::checkGlError(call);
     }
+    printf("XXX: framebuffer status = 0x%x\n", glCheckFramebufferStatus(GL_FRAMEBUFFER) );
 }
 
 static void retrace_glGenerateMipmapEXT(trace::Call &call) {
