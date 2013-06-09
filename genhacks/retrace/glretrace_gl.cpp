@@ -48864,7 +48864,11 @@ static void retrace_glSetFenceAPPLE(trace::Call &call) {
     if (!glretrace::insideList && !glretrace::insideGlBeginEnd && retrace::profiling) {
         glretrace::beginProfile(call, false);
     }
+#if __linux__ || _WIN32
     glSetFenceNV(fence, GL_ALL_COMPLETED_NV);
+#else
+    glSetFenceAPPLE(fence);
+#endif
     if (!glretrace::insideList && !glretrace::insideGlBeginEnd && retrace::profiling) {
         glretrace::endProfile(call, false);
     }
@@ -48890,7 +48894,7 @@ static void retrace_glTestFenceAPPLE(trace::Call &call) {
     if (!glretrace::insideList && !glretrace::insideGlBeginEnd && retrace::profiling) {
         glretrace::beginProfile(call, false);
     }
-    _result = glTestFenceNV(fence);
+    _result = glTestFenceAPPLE(fence);
     (void)_result;
     if (!glretrace::insideList && !glretrace::insideGlBeginEnd && retrace::profiling) {
         glretrace::endProfile(call, false);
@@ -72572,13 +72576,24 @@ const retrace::Entry glretrace::gl_callbacks[] = {
     {"glDeleteFencesAPPLE", &retrace_glDeleteFencesAPPLE},
     {"glSetFenceAPPLE", &retrace_glSetFenceAPPLE},
     {"glIsFenceAPPLE", &retrace::ignore},
+#if __linux__ || _WIN32
     {"glTestFenceAPPLE", &retrace_glTestFenceNV},
     {"glFinishFenceAPPLE", &retrace_glFinishFenceNV},
+#else
+    {"glTestFenceAPPLE", &retrace_glTestFenceAPPLE},
+    {"glFinishFenceAPPLE", &retrace_glFinishFenceAPPLE},
+#endif
     {"glTestObjectAPPLE", &retrace_glTestObjectAPPLE},
     {"glFinishObjectAPPLE", &retrace_glFinishObjectAPPLE},
+#if __linux__ || _WIN32
     {"glBindVertexArrayAPPLE", &retrace_glBindVertexArray},
     {"glDeleteVertexArraysAPPLE", &retrace_glDeleteVertexArrays},
     {"glGenVertexArraysAPPLE", &retrace_glGenVertexArrays},
+#else
+    {"glBindVertexArrayAPPLE", &retrace_glBindVertexArrayAPPLE},
+    {"glDeleteVertexArraysAPPLE", &retrace_glDeleteVertexArraysAPPLE},
+    {"glGenVertexArraysAPPLE", &retrace_glGenVertexArraysAPPLE},
+#endif
     {"glIsVertexArrayAPPLE", &retrace::ignore},
     {"glVertexArrayRangeAPPLE", &retrace_glVertexArrayRangeAPPLE},
     {"glFlushVertexArrayRangeAPPLE", &retrace_glFlushVertexArrayRangeAPPLE},
