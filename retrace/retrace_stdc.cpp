@@ -50,8 +50,11 @@ static void retrace_malloc(trace::Call &call) {
     retrace::addRegion(address, buffer, size);
 }
 
-
+bool gSkipMapBuffers = false;
 static void retrace_memcpy(trace::Call &call) {
+    if (gSkipMapBuffers) 
+        return;
+
     void * dest = retrace::toPointer(call.arg(0));
     void * src  = retrace::toPointer(call.arg(1));
     size_t n    = call.arg(2).toUInt();

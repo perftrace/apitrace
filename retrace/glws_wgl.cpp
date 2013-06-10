@@ -34,6 +34,7 @@
 #include "glproc.hpp"
 #include "glws.hpp"
 
+extern bool gSkipMapBuffers;
 
 namespace glws {
 
@@ -68,6 +69,9 @@ WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         switch (wParam) {
         case VK_ESCAPE:
             PostMessage(hWnd, WM_CLOSE, 0, 0);
+            break;
+        case 'S':
+            gSkipMapBuffers = !gSkipMapBuffers;
             break;
         }
         break;

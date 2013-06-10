@@ -34,6 +34,8 @@ static retrace::map<GLuint> _fragmentShaderATI_map;
 static retrace::map<GLuint> _arrayAPPLE_map;
 static retrace::map<GLuint> _region_map;
 
+extern bool gSkipMapBuffers;
+
 static void retrace_glCullFace(trace::Call &call) {
     retrace::ScopedAllocator _allocator;
     (void)_allocator;
@@ -12524,6 +12526,10 @@ static void retrace_glBufferSubData(trace::Call &call) {
 }
 
 static void retrace_glMapBuffer(trace::Call &call) {
+
+    if (gSkipMapBuffers)
+        return;
+
     retrace::ScopedAllocator _allocator;
     (void)_allocator;
     GLenum target;
@@ -12547,7 +12553,7 @@ static void retrace_glMapBuffer(trace::Call &call) {
     if (retrace::debug && !glretrace::insideGlBeginEnd && glretrace::getCurrentContext()) {
         glretrace::checkGlError(call);
         if (!_result) {
-             retrace::warning(call) << "failed to map buffer\n";
+                retrace::warning(call) << "failed to map buffer\n";
         }
     }
     GLint length = 0;
@@ -12556,6 +12562,9 @@ static void retrace_glMapBuffer(trace::Call &call) {
 }
 
 static void retrace_glUnmapBuffer(trace::Call &call) {
+    if (gSkipMapBuffers)
+        return;
+
     retrace::ScopedAllocator _allocator;
     (void)_allocator;
     GLenum target;
@@ -12583,7 +12592,7 @@ static void retrace_glUnmapBuffer(trace::Call &call) {
     if (retrace::debug && !glretrace::insideGlBeginEnd && glretrace::getCurrentContext()) {
         glretrace::checkGlError(call);
         if (!_result) {
-             retrace::warning(call) << "failed to unmap buffer\n";
+                retrace::warning(call) << "failed to unmap buffer\n";
         }
     }
 }
@@ -21686,6 +21695,9 @@ static void retrace_glBufferSubDataARB(trace::Call &call) {
 }
 
 static void retrace_glMapBufferARB(trace::Call &call) {
+    if (gSkipMapBuffers)
+        return;
+
     retrace::ScopedAllocator _allocator;
     (void)_allocator;
     GLenum target;
@@ -21718,6 +21730,9 @@ static void retrace_glMapBufferARB(trace::Call &call) {
 }
 
 static void retrace_glUnmapBufferARB(trace::Call &call) {
+    if (gSkipMapBuffers)
+        return;
+
     retrace::ScopedAllocator _allocator;
     (void)_allocator;
     GLenum target;

@@ -51,11 +51,27 @@ static enum {
 } snapshotFormat = PNM_FMT;
 
 static trace::CallSet snapshotFrequency;
-static trace::ParseBookmark lastFrameStart;
 
 static unsigned dumpStateCallNo = ~0;
 
 retrace::Retracer retracer;
+
+void 
+processEvents(void) {
+    MSG uMsg;
+    while (PeekMessage(&uMsg, NULL, 0, 0, PM_REMOVE)) {
+        if (uMsg.message == WM_QUIT) {
+            // Need to handle this. :(
+            return ;
+        }
+
+        if (!TranslateAccelerator(uMsg.hwnd, NULL, &uMsg)) {
+            TranslateMessage(&uMsg);
+            DispatchMessage(&uMsg);
+        }
+    }
+}
+
 
 
 namespace retrace {
@@ -214,6 +230,9 @@ public:
     passBaton(trace::Call *call);
 
     void
+    beginFrameLoop();
+
+    void
     finishLine();
 
     void
@@ -246,6 +265,9 @@ private:
     trace::Call *baton;
 
     os::thread thread;
+    std::vector<trace::Call*> mCurrentFrameCalls;
+    std::vector<trace::Call*> mLoopingFrameCalls;
+    std::vector<trace::Call*>::iterator* mLoopingFrameIt;
 
     static void *
     runnerThread(RelayRunner *_this);
@@ -255,7 +277,8 @@ public:
         race(race),
         leg(_leg),
         finished(false),
-        baton(0)
+        baton(0),
+        mLoopingFrameIt(0)
     {
         /* The fore runner does not need a new thread */
         if (leg) {
@@ -278,7 +301,13 @@ public:
 
         while (1) {
             while (!finished && !baton) {
-                wake_cond.wait(lock);
+                if (leg == 0) {
+                    // Main thread, need to pump the msgproc or another thread asking us to resize will
+                    // cause a hang.
+                    wake_cond.wait(lock, &processEvents);
+                } else {
+                    wake_cond.wait(lock, NULL);
+                }
             }
 
             if (finished) {
@@ -308,27 +337,38 @@ public:
         /* Consume successive calls for this thread. */
         do {
             bool callEndsFrame = false;
-            static trace::ParseBookmark frameStart;
-
+            
             assert(call);
             assert(call->thread_id == leg);
 
             if (loopOnFinish && call->flags & trace::CALL_FLAG_END_FRAME) {
                 callEndsFrame = true;
-                parser.getBookmark(frameStart);
             }
 
             retraceCall(call);
-            delete call;
-            call = parser.parse_call();
+            call = nextCall();
+
+            mCurrentFrameCalls.push_back(call);
 
             /* Restart last frame if looping is requested. */
             if (loopOnFinish) {
                 if (!call) {
-                    parser.setBookmark(lastFrameStart);
-                    call = parser.parse_call();
+                    // This was the last frame, so start looping.
+                    race->beginFrameLoop();
+                    call = nextCall();
+                    mCurrentFrameCalls.push_back(call);
+
                 } else if (callEndsFrame) {
-                    lastFrameStart = frameStart;
+                    // Pop the last guy off the back, because we don't want to delete it.
+                    mCurrentFrameCalls.pop_back();
+                    // Otherwise, clean up the calls from this frame.
+                    for (auto it = mCurrentFrameCalls.begin(); it != mCurrentFrameCalls.end(); ++it) {
+                        delete (*it);
+                        (*it) = 0;
+                    }
+                    mCurrentFrameCalls.clear();
+                    // Now restore that last guy
+                    mCurrentFrameCalls.push_back(call);
                 }
             }
 
@@ -350,6 +390,27 @@ public:
                 finished = true;
             }
         }
+    }
+
+    trace::Call*
+    nextCall() {
+        if (mLoopingFrameCalls.empty()) {
+            return parser.parse_call();
+        } 
+
+        assert(mLoopingFrameIt != NULL);
+        assert((*mLoopingFrameIt) != mLoopingFrameCalls.end());
+        trace::Call* nextCall = *(*mLoopingFrameIt);
+        ++(*mLoopingFrameIt);
+        return nextCall;
+    }
+
+    void
+    beginFrameLoop() {
+        delete mLoopingFrameIt;
+        mLoopingFrameCalls.swap(mCurrentFrameCalls);
+        mLoopingFrameIt = new std::vector<trace::Call*>::iterator(mLoopingFrameCalls.begin());
+        mCurrentFrameCalls.clear();
     }
 
     /**
@@ -439,12 +500,9 @@ RelayRace::run(void) {
         return;
     }
 
-    /* If the user wants to loop we need to get a bookmark target. We
-     * usually get this after replaying a call that ends a frame, but
-     * for a trace that has only one frame we need to get it at the
-     * beginning. */
+    /* If looping, then need to ensure the first call is pushed in. */
     if (loopOnFinish) {
-        parser.getBookmark(lastFrameStart);
+        getRunner(call->thread_id)->mCurrentFrameCalls.push_back(call);
     }
 
     RelayRunner *foreRunner = getForeRunner();
@@ -468,6 +526,13 @@ RelayRace::passBaton(trace::Call *call) {
     if (0) std::cerr << "switching to thread " << call->thread_id << "\n";
     RelayRunner *runner = getRunner(call->thread_id);
     runner->receiveBaton(call);
+}
+
+void
+RelayRace::beginFrameLoop() {
+    for (auto it = runners.begin(); it != runners.end(); ++it) {
+        (*it)->beginFrameLoop();
+    }
 }
 
 

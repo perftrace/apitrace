@@ -264,15 +264,26 @@ namespace os {
         }
 
         inline void
-        wait(unique_lock<mutex> & lock) {
+        wait(unique_lock<mutex> & lock, void (* pWaitProc )() = NULL) {
             mutex::native_handle_type & mutex_native_handle = lock.mutex()->native_handle();
 #ifdef _WIN32
 #  if USE_WIN32_CONDITION_VARIABLES
+            if (pWaitProc) {
+                assert(!"Implement conditional variables and wait procs.");
+            }
             SleepConditionVariableCS(&_native_handle, &mutex_native_handle, INFINITE);
 #  else
             InterlockedIncrement(&cWaiters);
             LeaveCriticalSection(&mutex_native_handle);
-            WaitForSingleObject(hEvent, INFINITE);
+
+            if (pWaitProc) {
+                DWORD waitResult = 0;
+                while ((waitResult = WaitForSingleObject(hEvent, 1)) == WAIT_TIMEOUT) {
+                    (*pWaitProc)();
+                }
+            } else {
+                WaitForSingleObject(hEvent, INFINITE);
+            }
             EnterCriticalSection(&mutex_native_handle);
             InterlockedDecrement(&cWaiters);
 #  endif
