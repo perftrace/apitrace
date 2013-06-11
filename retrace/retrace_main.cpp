@@ -58,6 +58,7 @@ retrace::Retracer retracer;
 
 void 
 processEvents(void) {
+#if _WIN32
     MSG uMsg;
     while (PeekMessage(&uMsg, NULL, 0, 0, PM_REMOVE)) {
         if (uMsg.message == WM_QUIT) {
@@ -70,6 +71,7 @@ processEvents(void) {
             DispatchMessage(&uMsg);
         }
     }
+#endif
 }
 
 
