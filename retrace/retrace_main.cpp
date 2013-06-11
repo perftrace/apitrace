@@ -364,7 +364,7 @@ public:
                     // Pop the last guy off the back, because we don't want to delete it.
                     mCurrentFrameCalls.pop_back();
                     // Otherwise, clean up the calls from this frame.
-                    for (auto it = mCurrentFrameCalls.begin(); it != mCurrentFrameCalls.end(); ++it) {
+                    for (std::vector<trace::Call*>::iterator it = mCurrentFrameCalls.begin(); it != mCurrentFrameCalls.end(); ++it) {
                         delete (*it);
                         (*it) = 0;
                     }
@@ -532,7 +532,7 @@ RelayRace::passBaton(trace::Call *call) {
 
 void
 RelayRace::beginFrameLoop() {
-    for (auto it = runners.begin(); it != runners.end(); ++it) {
+    for (std::vector<RelayRunner*>::iterator it = runners.begin(); it != runners.end(); ++it) {
         (*it)->beginFrameLoop();
     }
 }
