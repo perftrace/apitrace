@@ -265,6 +265,9 @@ private:
      */
     bool finished;
     trace::Call *baton;
+    bool loopedOnce;
+    float startTime;
+    int frameCount;
 
     os::thread thread;
     std::vector<trace::Call*> mCurrentFrameCalls;
@@ -280,6 +283,9 @@ public:
         leg(_leg),
         finished(false),
         baton(0),
+        loopedOnce(false),
+        startTime(os::getTime()),
+        frameCount(0),
         mLoopingFrameIt(0)
     {
         /* The fore runner does not need a new thread */
@@ -345,6 +351,7 @@ public:
 
             if (loopOnFinish && call->flags & trace::CALL_FLAG_END_FRAME) {
                 callEndsFrame = true;
+                ++frameCount;
             }
 
             retraceCall(call);
@@ -355,6 +362,20 @@ public:
             /* Restart last frame if looping is requested. */
             if (loopOnFinish) {
                 if (!call) {
+                    float endTime = os::getTime();
+                    float elapsedS = (endTime - startTime) / os::timeFrequency;
+                    if (!loopedOnce || elapsedS > 1.0f) {
+                        std::cout << 
+                            "Rendered " << frameCount << " frames"
+                            " in " <<  elapsedS << " secs,"
+                            " average of " << (frameCount/elapsedS) << " fps\n";
+
+                        // Set up to output the FPS again once per second.
+                        frameCount = 0;
+                        startTime = endTime;
+                        loopedOnce = true;
+                    }
+
                     // This was the last frame, so start looping.
                     race->beginFrameLoop();
                     call = nextCall();
@@ -495,6 +516,7 @@ RelayRace::getRunner(unsigned leg) {
  */
 void
 RelayRace::run(void) {
+
     trace::Call *call;
     call = parser.parse_call();
     if (!call) {
