@@ -334,6 +334,7 @@ const retrace::Entry glretrace::cgl_callbacks[] = {
     {"CGLSetParameter", &retrace::ignore},
     {"CGLTexImageIOSurface2D", &retrace_CGLTexImageIOSurface2D},
     {"CGLUpdateContext", &retrace::ignore},
+    {"CGLSetOption", &retrace::ignore},
     {NULL, NULL},
 };
 

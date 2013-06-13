@@ -369,6 +369,7 @@ public:
                             "Rendered " << frameCount << " frames"
                             " in " <<  elapsedS << " secs,"
                             " average of " << (frameCount/elapsedS) << " fps\n";
+                        std::cout.flush();
 
                         // Set up to output the FPS again once per second.
                         frameCount = 0;
