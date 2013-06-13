@@ -384,7 +384,9 @@ makeCurrent(Drawable *drawable, Context *context)
         GlxDrawable *glxDrawable = static_cast<GlxDrawable *>(drawable);
         GlxContext *glxContext = static_cast<GlxContext *>(context);
 
-        return glXMakeCurrent(display, glxDrawable->window, glxContext->context);
+        bool ret = glXMakeCurrent(display, glxDrawable->window, glxContext->context);
+        glXSwapIntervalEXT( display, glxDrawable->window, 0 );
+        return ret;
     }
 }
 

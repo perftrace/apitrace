@@ -41,6 +41,9 @@
 #include "retrace.hpp"
 
 
+extern bool gSkipMapBuffers;
+extern bool gSkipFBO;
+
 static bool waitOnFinish = false;
 static bool loopOnFinish = false;
 
@@ -370,6 +373,8 @@ public:
                             " in " <<  elapsedS << " secs,"
                             " average of " << (frameCount/elapsedS) << " fps\n";
                         std::cout.flush();
+                        //gSkipMapBuffers = true;
+                        //gSkipFBO = true;
 
                         // Set up to output the FPS again once per second.
                         frameCount = 0;
