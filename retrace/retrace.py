@@ -386,7 +386,7 @@ class Retracer:
         for t_key, t_val in toggles.items():
           for r in t_val['functions']:
             if re.match( r, function.name ):
-              print '    if( retrace::toggles[\'%s\'] ) { // %s' % ( t_key, t_val['description'] )
+              print '    if( retrace::toggles[int(\'%s\')] ) { // %s' % ( t_key, t_val['description'] )
               print '        return;'
               print '    }'
               print
