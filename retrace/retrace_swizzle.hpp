@@ -114,3 +114,4 @@ toObjPointer(trace::Call &call, trace::Value &value);
 } /* namespace retrace */
 
 #endif /* _RETRACE_SWIZZLE_HPP_ */
+
