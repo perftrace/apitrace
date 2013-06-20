@@ -31,6 +31,7 @@
 import os.path
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+import re
 
 
 import specs.stdapi as stdapi
@@ -339,6 +340,28 @@ class SwizzledValueRegistrator(stdapi.Visitor, stdapi.ExpanderMixin):
     def visitOpaque(self, opaque, lvalue, rvalue):
         pass
 
+toggles = {
+    'g' : {
+      'description' : "skip all gl calls",
+      'functions' : [
+        "gl",
+        ],
+      },
+    'f' : {
+      'description' : "skip all fbo calls",
+      'functions' : [
+        "gl(Bind|Gen|Delete|Is|)(Frame|Render)buffer",
+        ],
+      },
+    'm' : {
+      'description' : "skip all map/unmap buffer calls",
+      'functions' : [
+        "gl(Map|Unmap)Buffer",
+        "glFlushMappedBufferRange",
+        ],
+      },
+    }
+
 
 class Retracer:
 
@@ -360,9 +383,20 @@ class Retracer:
         if function.type is not stdapi.Void:
             self.checkOrigResult(function)
 
+        for t_key, t_val in toggles.items():
+          for r in t_val['functions']:
+            if re.match( r, function.name ):
+              print '    if( retrace::toggles[\'%s\'] ) { // %s' % ( t_key, t_val['description'] )
+              print '        return;'
+              print '    }'
+              print
+              break
+
         self.deserializeArgs(function)
         
         self.declareRet(function)
+
+
         self.invokeFunction(function)
 
         self.swizzleValues(function)
@@ -511,6 +545,8 @@ class Retracer:
         print '#include "trace_parser.hpp"'
         print '#include "retrace.hpp"'
         print '#include "retrace_swizzle.hpp"'
+        print
+        print 'namespace retrace { bool toggles[256]; }'
         print
 
         types = api.getAllTypes()

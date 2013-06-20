@@ -52,6 +52,7 @@ namespace retrace {
 
 extern trace::Parser parser;
 extern trace::Profiler profiler;
+extern bool toggles[256];
 
 
 class ScopedAllocator : public ::ScopedAllocator
