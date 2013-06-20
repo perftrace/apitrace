@@ -13,6 +13,9 @@ static bool _pipelineHasBeenBound = false;
 #include "retrace.hpp"
 #include "retrace_swizzle.hpp"
 
+bool gSkipFBO = false;
+bool pvtSkipFBO = false;
+
 static retrace::map<GLuint> _list_map;
 static retrace::map<GLuint> _texture_map;
 static retrace::map<GLuint> _query_map;
@@ -12622,6 +12625,9 @@ static void retrace_glBlendEquationSeparate(trace::Call &call) {
 }
 
 static void retrace_glDrawBuffers(trace::Call &call) {
+  if( pvtSkipFBO ) {
+    return;
+  }
     retrace::ScopedAllocator _allocator;
     (void)_allocator;
     GLsizei n;
@@ -22995,6 +23001,9 @@ static void retrace_glGetAttribLocationARB(trace::Call &call) {
 }
 
 static void retrace_glDrawBuffersARB(trace::Call &call) {
+  if( pvtSkipFBO ) {
+    return;
+  }
     retrace::ScopedAllocator _allocator;
     (void)_allocator;
     GLsizei n;
@@ -23261,6 +23270,9 @@ static void retrace_glRenderbufferStorage(trace::Call &call) {
 }
 
 static void retrace_glBindFramebuffer(trace::Call &call) {
+  if( pvtSkipFBO ) {
+    return; 
+  }
     assert(call.flags & trace::CALL_FLAG_SWAP_RENDERTARGET);
     retrace::ScopedAllocator _allocator;
     (void)_allocator;
@@ -23286,6 +23298,9 @@ static void retrace_glBindFramebuffer(trace::Call &call) {
     }
     if (retrace::debug && !glretrace::insideGlBeginEnd && glretrace::getCurrentContext()) {
         glretrace::checkGlError(call);
+    }
+    if( gSkipFBO && framebuffer == 0 ) {
+      pvtSkipFBO = true;
     }
 }
 
@@ -23501,6 +23516,9 @@ static void retrace_glFramebufferTexture3D(trace::Call &call) {
 }
 
 static void retrace_glFramebufferRenderbuffer(trace::Call &call) {
+  if( pvtSkipFBO ) {
+    return;
+  }
     retrace::ScopedAllocator _allocator;
     (void)_allocator;
     GLenum target;
@@ -49227,6 +49245,9 @@ static void retrace_glSwapAPPLE(trace::Call &call) {
 }
 
 static void retrace_glDrawBuffersATI(trace::Call &call) {
+  if( pvtSkipFBO ) {
+    return;
+  }
     retrace::ScopedAllocator _allocator;
     (void)_allocator;
     GLsizei n;
@@ -51131,6 +51152,9 @@ static void retrace_glRenderbufferStorageEXT(trace::Call &call) {
 }
 
 static void retrace_glBindFramebufferEXT(trace::Call &call) {
+  if( pvtSkipFBO ) {
+    return;
+  }
 #if __linux__ || _WIN32
     if( 1 ) {
       retrace_glBindFramebuffer( call );
@@ -51162,6 +51186,9 @@ static void retrace_glBindFramebufferEXT(trace::Call &call) {
     }
     if (retrace::debug && !glretrace::insideGlBeginEnd && glretrace::getCurrentContext()) {
         glretrace::checkGlError(call);
+    }
+    if( gSkipFBO && framebuffer == 0 ) {
+      pvtSkipFBO = true;
     }
 }
 
@@ -51269,6 +51296,9 @@ static void retrace_glCheckFramebufferStatusEXT(trace::Call &call) {
 }
 
 static void retrace_glFramebufferTexture1DEXT(trace::Call &call) {
+  if( pvtSkipFBO ) {
+    return;
+  }
     retrace::ScopedAllocator _allocator;
     (void)_allocator;
     GLenum target;
@@ -51306,6 +51336,9 @@ static void retrace_glFramebufferTexture1DEXT(trace::Call &call) {
 }
 
 static void retrace_glFramebufferTexture2DEXT(trace::Call &call) {
+  if( pvtSkipFBO ) {
+    return;
+  }
 #if __linux__ || _WIN32
     if( 1 ) {
       retrace_glFramebufferTexture2D( call );
@@ -51349,6 +51382,9 @@ static void retrace_glFramebufferTexture2DEXT(trace::Call &call) {
 }
 
 static void retrace_glFramebufferTexture3DEXT(trace::Call &call) {
+  if( pvtSkipFBO ) {
+    return;
+  }
     retrace::ScopedAllocator _allocator;
     (void)_allocator;
     GLenum target;
@@ -51389,6 +51425,9 @@ static void retrace_glFramebufferTexture3DEXT(trace::Call &call) {
 }
 
 static void retrace_glFramebufferRenderbufferEXT(trace::Call &call) {
+  if( pvtSkipFBO ) {
+    return;
+  }
 #if __linux__ || _WIN32
     if( 1 ) {
       retrace_glFramebufferRenderbuffer( call );
@@ -52142,6 +52181,9 @@ static void retrace_glProgramVertexLimitNV(trace::Call &call) {
 }
 
 static void retrace_glFramebufferTextureEXT(trace::Call &call) {
+  if( pvtSkipFBO ) {
+    return;
+  }
     retrace::ScopedAllocator _allocator;
     (void)_allocator;
     GLenum target;
@@ -52176,6 +52218,9 @@ static void retrace_glFramebufferTextureEXT(trace::Call &call) {
 }
 
 static void retrace_glFramebufferTextureLayerEXT(trace::Call &call) {
+  if( pvtSkipFBO ) {
+    return;
+  }
     retrace::ScopedAllocator _allocator;
     (void)_allocator;
     GLenum target;
@@ -52213,6 +52258,9 @@ static void retrace_glFramebufferTextureLayerEXT(trace::Call &call) {
 }
 
 static void retrace_glFramebufferTextureFaceEXT(trace::Call &call) {
+  if( pvtSkipFBO ) {
+    return;
+  }
     retrace::ScopedAllocator _allocator;
     (void)_allocator;
     GLenum target;
@@ -68897,6 +68945,9 @@ static void retrace_glCheckFramebufferStatusOES(trace::Call &call) {
 }
 
 static void retrace_glFramebufferTexture2DOES(trace::Call &call) {
+  if( pvtSkipFBO ) {
+    return;
+  }
     retrace::ScopedAllocator _allocator;
     (void)_allocator;
     GLenum target;
@@ -68934,6 +68985,9 @@ static void retrace_glFramebufferTexture2DOES(trace::Call &call) {
 }
 
 static void retrace_glFramebufferRenderbufferOES(trace::Call &call) {
+  if( pvtSkipFBO ) {
+    return;
+  }
     retrace::ScopedAllocator _allocator;
     (void)_allocator;
     GLenum target;
@@ -69652,6 +69706,9 @@ static void retrace_glCompressedTexSubImage3DOES(trace::Call &call) {
 }
 
 static void retrace_glFramebufferTexture3DOES(trace::Call &call) {
+  if( pvtSkipFBO ) {
+    return;
+  }
     retrace::ScopedAllocator _allocator;
     (void)_allocator;
     GLenum target;
@@ -70117,6 +70174,9 @@ static void retrace_glRenderbufferStorageMultisampleIMG(trace::Call &call) {
 }
 
 static void retrace_glFramebufferTexture2DMultisampleIMG(trace::Call &call) {
+  if( pvtSkipFBO ) {
+    return;
+  }
     retrace::ScopedAllocator _allocator;
     (void)_allocator;
     GLenum target;
@@ -70304,6 +70364,9 @@ static void retrace_glRenderbufferStorageMultisampleANGLE(trace::Call &call) {
 }
 
 static void retrace_glDrawBuffersNV(trace::Call &call) {
+  if( pvtSkipFBO ) {
+    return;
+  }
     retrace::ScopedAllocator _allocator;
     (void)_allocator;
     GLsizei n;
@@ -70741,6 +70804,9 @@ static void retrace_glValidateProgramPipelineEXT(trace::Call &call) {
 }
 
 static void retrace_glFramebufferTexture2DMultisampleEXT(trace::Call &call) {
+  if( pvtSkipFBO ) {
+    return;
+  }
     retrace::ScopedAllocator _allocator;
     (void)_allocator;
     GLenum target;
