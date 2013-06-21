@@ -35,6 +35,7 @@ add_custom_command (
 
 add_library (retrace_common STATIC
     retrace.cpp
+    retrace_hooks.cpp
     retrace_main.cpp
     retrace_stdc.cpp
     retrace_swizzle.cpp

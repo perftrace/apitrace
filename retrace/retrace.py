@@ -340,27 +340,23 @@ class SwizzledValueRegistrator(stdapi.Visitor, stdapi.ExpanderMixin):
     def visitOpaque(self, opaque, lvalue, rvalue):
         pass
 
-toggles = {
-    'g' : {
-      'description' : "skip all gl calls",
-      'functions' : [
-        "gl",
-        ],
-      },
-    'f' : {
-      'description' : "skip all fbo calls",
-      'functions' : [
-        "gl(Bind|Gen|Delete|Is|)(Frame|Render)buffer",
-        ],
-      },
-    'm' : {
-      'description' : "skip all map/unmap buffer calls",
-      'functions' : [
-        "gl(Map|Unmap)Buffer",
-        "glFlushMappedBufferRange",
-        ],
-      },
-    }
+hooks = [
+        {
+            'description' : "fbo hooks",
+            'functions' : [
+                "gl(Bind|Gen|Delete|Is|)(Frame|Render)buffer",
+                ],
+            'predicate' : "hook_fbo",
+            },
+        {
+            'description' : "map/unmap buffer hooks",
+            'functions' : [
+                "gl(Map|Unmap)Buffer",
+                "glFlushMappedBufferRange",
+                ],
+            'predicate' : "hook_map",
+            },
+        ]
 
 
 class Retracer:
@@ -383,10 +379,10 @@ class Retracer:
         if function.type is not stdapi.Void:
             self.checkOrigResult(function)
 
-        for t_key, t_val in toggles.items():
-          for r in t_val['functions']:
+        for h in hooks:
+          for r in h['functions']:
             if re.match( r, function.name ):
-              print '    if( retrace::toggles[int(\'%s\')] ) { // %s' % ( t_key, t_val['description'] )
+              print '    if( %s( call ) ) { // %s' % ( h['predicate'], h['description'] )
               print '        return;'
               print '    }'
               print
@@ -546,7 +542,8 @@ class Retracer:
         print '#include "retrace.hpp"'
         print '#include "retrace_swizzle.hpp"'
         print
-        print 'namespace retrace { bool toggles[256]; }'
+        for h in hooks:
+            print 'bool %s( trace::Call & );' % h['predicate']
         print
 
         types = api.getAllTypes()
